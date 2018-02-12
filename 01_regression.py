@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 # for linear regression
 from sklearn.linear_model import LinearRegression
 # linear regression
-# import statsmodels.formula.api as sm
+ import statsmodels.formula.api as sm
 # poly variables
 from sklearn.preprocessing import PolynomialFeatures
 # scaling
@@ -29,8 +29,14 @@ from sklearn.preprocessing import StandardScaler
 # from sklearn_pandas import DataFrameMapper
 # SVR
 from sklearn.svm import SVR
+# Decision tree
+from sklearn.tree import DecisionTreeRegressor
+# Random forecast
+from sklearn.ensemble import RandomForestRegressor
 # extra functions
 import dataInOut as myio
+
+
 
 #%% SETTING
 
@@ -82,7 +88,6 @@ if which_input == 'salary_svm':
             'feature_scaling':True,
             'poly_degree': np.nan}
 
-
 #%% INPUT
 
 # from csv to two datasets
@@ -90,7 +95,6 @@ X, y = myio.csv_df2Xy(
         input_setting['csv_file'],
         input_setting['X_cols'],
         input_setting['y_col'])
-
 
 #%% PREPROCESSING
 
@@ -148,9 +152,18 @@ regressor.fit(X_train, y_train)
 
 
 #%% SV REGRESSION
-
 # FIT
 regressor = SVR(kernel = 'rbf')
+regressor.fit(X, y)
+
+#%% DECISION TREE REGRESSION
+# FIT
+regressor = DecisionTreeRegressor(random_state = seed_random)
+regressor.fit(X, y)
+
+#%% RANDOM FORECAST REGRESSION
+# FIT
+regressor = RandomForestRegressor(n_estimators = 10, random_state = seed_random)
 regressor.fit(X, y)
 
 
@@ -204,4 +217,21 @@ plt.show()
 
 
 
-
+#%% MANUAL SEARCH BEST REGRESSION
+# Building the optimal model using Backward Elimination
+X = np.append(arr = np.ones((50, 1)).astype(int), values = X, axis = 1)
+X_opt = X[:, [0, 1, 2, 3, 4, 5]]
+regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
+regressor_OLS.summary()
+X_opt = X[:, [0, 1, 3, 4, 5]]
+regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
+regressor_OLS.summary()
+X_opt = X[:, [0, 3, 4, 5]]
+regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
+regressor_OLS.summary()
+X_opt = X[:, [0, 3, 5]]
+regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
+regressor_OLS.summary()
+X_opt = X[:, [0, 3]]
+regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
+regressor_OLS.summary()
