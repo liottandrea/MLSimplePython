@@ -38,14 +38,26 @@ df = pd.concat(
     [pd.read_csv(f, index_col='PassengerId', header=0) for f in csv_to_load]
     , keys = name_to_load)
 
-
 print('--- Info ---')
 print(df.info())
 print('--- Describe ---')
 print(df.describe())
 
+
+#%% FEATURE ENGINEERING
 print('--- Features ---')
-for feature in set(df_train.columns.values).difference(set(['Name'])):
+for feature in set(df.columns.values).difference(set(['Name'])):
     print(feature)
     print(df[feature].value_counts(dropna=False))
     print('-' * 40)
+
+
+mapper = DataFrameMapper([
+    ('Pclass', None),
+    ('Sex', LabelBinarizer()),
+    (['Age'], [Imputer()]),
+    ('SibSp', None, {'alias': 'Some variable'}),
+    (['Ticket'], [LabelBinarizer()]),
+    (['Fare'], Imputer()),
+    ('Embarked', [CategoricalImputer(), MultiLabelBinarizer()]),
+    ], default = False )
