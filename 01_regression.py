@@ -1,10 +1,6 @@
 #%% DESCRIPTION
-
 # Regression Template
-
-# install a module in IPython in Spyder
-# type in the console
-# !pip install [name of the module]
+# standard template to run regression in Python
 
 #%% ENV
 
@@ -19,7 +15,7 @@ from sklearn.model_selection import train_test_split
 # for linear regression
 from sklearn.linear_model import LinearRegression
 # linear regression
- import statsmodels.formula.api as sm
+import statsmodels.formula.api as sm
 # poly variables
 from sklearn.preprocessing import PolynomialFeatures
 # scaling
@@ -36,88 +32,84 @@ from sklearn.ensemble import RandomForestRegressor
 # extra functions
 import dataInOut as myio
 
-
+print("---Enviroment---")
+%load_ext version_information
+%reload_ext version_information
+%version_information os,glob, numpy, panda,sklearn, sklearn_pandas, statsmodels
 
 #%% SETTING
+print("---Setting---")
+setting = {
+        # seed for random
+        "seed_random" : 0,
+        # test size
+        "test_size" : 0.2,
+        # input to use
+        'which_input' : 'SvmReg'}
+print(setting)
 
-# seed for random
-seed_random = 0
-# test size
-test_size = 0.2
-
-# IN
-which_input = 'startups'
-which_input = 'salary_linear'
-which_input = 'salary_poly'
-which_input = 'salary_svm'
-
+# we have dictionary with the setting for each input
 # 50_Startups - multiple linear
-if which_input == 'startups': 
-    input_setting = {
-            'csv_file':'data/50_Startups.csv',
-            'y_col':'Profit',
-            'X_cols':['R&D Spend', 'Administration',
-                      'Marketing Spend', 'State'],
-            'dummy_cols':'State',
-            'poly_degree': np.nan}
-
+which_input = {
+        'MultiLinearReg' : {
+                'csv_file':'data/50_Startups.csv',
+                'y_col':'Profit',
+                'X_cols':['R&D Spend', 'Administration',
+                        'Marketing Spend', 'State'],
+                'dummy_cols':'State'},
 # Salary_Data - simple linear
-if which_input == 'salary_linear': 
-    input_setting = {
-            'csv_file':'data/Salary_Data.csv',
-            'y_col':'Salary',
-            'X_cols':'YearsExperience',
-            'dummy_cols': np.nan,
-            'poly_degree': np.nan}
-
+        'SimpleLinearReg': {
+                'csv_file':'data/Salary_Data.csv',
+                'y_col':'Salary',
+                'X_cols':'YearsExperience'},
 # 'Position_Salaries.csv' for poly
-if which_input == 'salary_poly': 
-    input_setting = {
-            'csv_file':'data/Position_Salaries.csv',
-            'y_col':'Salary',
-            'X_cols':'Level',
-            'dummy_cols':np.nan,
-            'poly_degree': 4}
-
+        'PolyReg': {
+                'csv_file':'data/Position_Salaries.csv',
+                'y_col':'Salary',
+                'X_cols':'Level',
+                'poly_degree': 4},
 # 'Position_Salaries.csv' for svm
-if which_input == 'salary_svm': 
-    input_setting = {
-            'csv_file':'data/Position_Salaries.csv',
-            'y_col':'Salary',
-            'X_cols':'Level',
-            'feature_scaling':True,
-            'poly_degree': np.nan}
+        'SvmReg': {
+                'csv_file':'data/Position_Salaries.csv',
+                'y_col':'Salary',
+                'X_cols':'Level',
+                'feature_scaling':True}
+}
+
+# select the one that you want to run
+print("---Setting Input---")
+setting_input = which_input[setting['which_input']]
+print(setting_input)
 
 #%% INPUT
 
 # from csv to two datasets
 X, y = myio.csv_df2Xy(
-        input_setting['csv_file'],
-        input_setting['X_cols'],
-        input_setting['y_col'])
+        setting_input['csv_file'],
+        setting_input['X_cols'],
+        setting_input['y_col'])
 
 #%% PREPROCESSING
 
 # Feature Scaling
-if pd.notnull(input_setting['feature_scaling']):
+if 'feature_scaling' in setting_input:
     sc_X = StandardScaler()
     sc_y = StandardScaler()
     X = sc_X.fit_transform(X)
     y = sc_y.fit_transform(y)
 
-
 # DUMMY VARIABLES
-if pd.notnull(input_setting['dummy_cols']):
+if 'dummy_cols' in setting_input:
     X = pd.get_dummies(
             X,
-            columns = [input_setting['dummy_cols']],
+            columns = [setting_input['dummy_cols']],
             drop_first = True) # Avoiding the Dummy Variable Trap
 
 # POLYNOMIAL
-if pd.notnull(input_setting['poly_degree']):
+if 'poly_degree' in setting_input:
     # set polynomial
     poly_transform = PolynomialFeatures(
-            degree = input_setting['poly_degree'],
+            degree = setting_input['poly_degree'],
             include_bias = False)
     # fit it
     poly_transform.fit_transform(X)
