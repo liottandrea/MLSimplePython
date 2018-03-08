@@ -33,10 +33,11 @@ from sklearn.ensemble import RandomForestRegressor
 import dataInOut as myio
 
 print("---Enviroment---")
+'''
 %load_ext version_information
 %reload_ext version_information
 %version_information os,glob, numpy, panda,sklearn, sklearn_pandas, statsmodels
-
+'''
 #%% SETTING
 print("---Setting---")
 setting = {
@@ -131,8 +132,8 @@ X = pd.DataFrame(
 # Splitting the dataset into the Training set and Test set
 X_train, X_test, y_train, y_test = train_test_split(
         X, y,
-        test_size = test_size,
-        random_state = seed_random)
+        test_size = setting['test_size'],
+        random_state = setting['seed_random'])
 
 
 #%% REGRESSION simple, multi, poly
@@ -150,12 +151,12 @@ regressor.fit(X, y)
 
 #%% DECISION TREE REGRESSION
 # FIT
-regressor = DecisionTreeRegressor(random_state = seed_random)
+regressor = DecisionTreeRegressor(random_state = setting['seed_random'])
 regressor.fit(X, y)
 
 #%% RANDOM FORECAST REGRESSION
 # FIT
-regressor = RandomForestRegressor(n_estimators = 10, random_state = seed_random)
+regressor = RandomForestRegressor(n_estimators = 10, random_state = setting['seed_random'])
 regressor.fit(X, y)
 
 
@@ -175,17 +176,17 @@ y_test_pred = pd.DataFrame(data = regressor.predict(X_test),
 
 # Simple linear regression
 ## Visualising the Training set results
-plt.scatter(X_train[input_setting['X_cols']].values, y_train.values, color = 'red')
-plt.plot(X_train[input_setting['X_cols']].values, y_train_pred.values, color = 'blue')
+plt.scatter(X_train[setting_input['X_cols']].values, y_train.values, color = 'red')
+plt.plot(X_train[setting_input['X_cols']].values, y_train_pred.values, color = 'blue')
 plt.title('Salary vs Experience (Training set)')
 plt.xlabel('Years of Experience')
 plt.ylabel('Salary')
 plt.show()
 
 ## Visualising the Test set results
-plt.scatter(X_test[input_setting['X_cols']].values, y_test.values, color = 'red')
-plt.plot(X_train[input_setting['X_cols']].values, y_train_pred.values, color = 'blue')
-plt.scatter(X_test[input_setting['X_cols']].values, y_test_pred.values, color = 'orange')
+plt.scatter(X_test[setting_input['X_cols']].values, y_test.values, color = 'red')
+plt.plot(X_train[setting_input['X_cols']].values, y_train_pred.values, color = 'blue')
+plt.scatter(X_test[setting_input['X_cols']].values, y_test_pred.values, color = 'orange')
 plt.title('Salary vs Experience (Test set)')
 plt.xlabel('Years of Experience')
 plt.ylabel('Salary')

@@ -1,5 +1,6 @@
 #%% ENV
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, WeekdayLocator,\
     DayLocator, MONDAY, date2num
@@ -16,7 +17,7 @@ def pandas_candlestick_ohlc(dat, stick = "day", otherseries = None):
     """
     mondays = WeekdayLocator(MONDAY)        # major ticks on the mondays
     alldays = DayLocator()              # minor ticks on the days
-    dayFormatter = DateFormatter('%d')      # e.g., 12
+    # dayFormatter = DateFormatter('%d')      # e.g., 12
  
     # Create a new DataFrame which includes OHLC data for each period specified by stick input
     transdat = dat.loc[:,["Open", "High", "Low", "Close"]]
@@ -32,7 +33,7 @@ def pandas_candlestick_ohlc(dat, stick = "day", otherseries = None):
             transdat["year"] = pd.to_datetime(transdat.index).map(lambda x: x.isocalendar()[0]) # Identify years
             grouped = transdat.groupby(list(set(["year",stick]))) # Group by year and other appropriate variable
             plotdat = pd.DataFrame({"Open": [], "High": [], "Low": [], "Close": []}) # Create empty data frame containing what will be plotted
-            for name, group in grouped:
+            for group in grouped: # name
                 plotdat = plotdat.append(pd.DataFrame({"Open": group.iloc[0,0],
                                             "High": max(group.High),
                                             "Low": min(group.Low),
