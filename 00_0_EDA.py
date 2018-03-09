@@ -1,9 +1,4 @@
-#%% DESCRIPTION
-print("---Description---")
-print("EDA Template")
-print("Reference: \n  . https://www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python \n")
-
-#%% ENV
+# %% ENV
 import os
 import glob
 import pandas as pd
@@ -15,12 +10,18 @@ from sklearn.preprocessing import StandardScaler
 from scipy import stats
 %matplotlib inline
 
-print("---Enviroment---")
-#%load_ext version_information
-#%reload_ext version_information
-#%version_information pandas, matplotlib, seaborn, numpy, scipy, sklearn, numpy
+# %% DESCRIPTION
+print("---Description---")
+print("EDA Template")
+print("Reference:")
+print(". https://www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python")
 
-#%% SETTING
+print("---Enviroment---")
+# %load_ext version_information
+# %reload_ext version_information
+# %version_information pandas, matplotlib, seaborn, numpy, scipy, sklearn, numpy
+
+# %% SETTING
 print("---Setting---")
 # set working directory
 wd = os.path.abspath(os.path.dirname("__file__"))
@@ -34,12 +35,12 @@ print("The file to load are\n%s" % '\n'.join(csv_to_load))
 # just extract the names to use as keys later
 name_to_load = [f[len(data_directory)+1:-len(".csv")] for f in csv_to_load]
 
-#%% INPUT
+# %% INPUT
 print('---Input---')
 # read files in the folder and concat into one
 df = pd.concat(
-    [pd.read_csv(f, index_col='Id', header=0) for f in csv_to_load]
-    , keys = name_to_load)
+    [pd.read_csv(f, index_col='Id', header=0) for f in csv_to_load],
+    keys=name_to_load)
 
 # divide train and test
 df_train = df.loc["train"]
@@ -60,7 +61,7 @@ after perform a little exploration.
 ('High', 'Medium' and 'Low')
 Comments - Any general comments that occured to us.
 """
-#%% EDA y
+# %% EDA y
 y_col = 'SalePrice'
 
 print('-> y: %s' % y_col)
@@ -76,23 +77,23 @@ print('--> Other Metrics')
 print("Skewness: %f" % df_train[y_col].skew())
 print("Kurtosis: %f" % df_train[y_col].kurt())
 
-#%% y VS X
+# %% y VS X
 print('-> y and X (continuous)')
 # SalePrice vs GrLivArea
 x_col = 'GrLivArea'
-print('--> Scatterplot %s & %s' % (y_col,x_col))
+print('--> Scatterplot %s & %s' % (y_col, x_col))
 df_train.plot.scatter(x=x_col, y=y_col)
 # SalePrice vs TotalBsmtSF
 x_col = 'TotalBsmtSF'
-print('--> Scatterplot %s & %s' % (y_col,x_col))
+print('--> Scatterplot %s & %s' % (y_col, x_col))
 df_train.plot.scatter(x=x_col, y=y_col)
 
 print('-> y and X (categorical)')
 x_col = 'OverallQual'
-print('--> Boxplot %s & %s' % (y_col,x_col))
+print('--> Boxplot %s & %s' % (y_col, x_col))
 # increase the size of the plot
 plt.subplots(figsize=(8, 6))
-sns.boxplot(x = x_col, y = y_col, data = df_train.loc[:,[x_col, y_col]])
+sns.boxplot(x=x_col, y=y_col, data=df_train.loc[:, [x_col, y_col]])
 
 x_col = 'YearBuilt'
 print('--> Boxplot %s & %s' % (y_col,x_col))
@@ -187,10 +188,10 @@ stats.probplot(df_train[x_col], plot = plt)
 #if area>0 it gets 1, for area==0 it gets 0
 df_train['HasBsmt'] = pd.Series(len(df_train['TotalBsmtSF']), index=df_train.index)
 df_train['HasBsmt'] = 0 
-df_train.loc[df_train['TotalBsmtSF']>0,'HasBsmt'] = 1
+df_train.loc[df_train['TotalBsmtSF'] > 0, 'HasBsmt'] = 1
 
 print('--> apply log transform only on strict positive values')
-df_train.loc[df_train['HasBsmt']==1,'TotalBsmtSF'] = np.log(df_train['TotalBsmtSF'])
+df_train.loc[df_train['HasBsmt'] == 1, 'TotalBsmtSF'] = np.log(df_train['TotalBsmtSF'])
 
 print('--> is %s normal? with the log transform (positive values only)' % x_col)
 sns.distplot(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], fit=norm)

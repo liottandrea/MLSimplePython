@@ -42,11 +42,11 @@ print("---Enviroment---")
 print("---Setting---")
 setting = {
         # seed for random
-        "seed_random" : 0,
+        "seed_random": 0,
         # test size
-        "test_size" : 0.2,
+        "test_size": 0.2,
         # input to use
-        'which_input' : 'SvmReg'}
+        'which_input': 'SvmReg'}
 print(setting)
 
 # we have dictionary with the setting for each input
@@ -160,7 +160,7 @@ regressor = RandomForestRegressor(n_estimators = 10, random_state = setting['see
 regressor.fit(X, y)
 
 
-#%% PREDICT
+# %% PREDICT
 # fitted values on train set
 y_train_pred = pd.DataFrame(data = regressor.predict(X_train),
                       columns = list(y_train),
