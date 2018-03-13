@@ -5,14 +5,16 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
-# importing packages for the prediction of time-series data
 from statsmodels.tsa.arima_model import ARIMA
 import statsmodels.api as sm
 import statsmodels.tsa.api as smt
 import statsmodels.formula.api as smf
 from sklearn.metrics import mean_squared_error
 from fbprophet import Prophet
-%matplotlib inline
+from pandas_datareader import data as pdr
+import fix_yahoo_finance as yf
+yf.pdr_override()
+
 
 # %% DESCRIPTION
 print("---Description---")
@@ -21,12 +23,14 @@ print("Reference:")
 
 print("---Enviroment---")
 # %load_ext version_information
-# %reload_ext version_information
-# %version_information pandas, matplotlib, 
-# seaborn, numpy, scipy, sklearn, numpy
+%reload_ext version_information
+%version_information pandas, matplotlib, sklearn, numpy
+%version_information fbprophet, statsmodels
 
 # %% SETTING
 print("---Setting---")
+# need for plot
+%matplotlib inline
 # Hyp - the data are inside a sulfolder of data
 data_subfolder = 'bitcoin'
 # set working directory
@@ -79,41 +83,30 @@ def ts_col2Ts(df, ts_index_level, ts_col):
     y.sort_index(inplace=True)
     return y
 
-series_ts = ts_col2Ts(df,1,ts_col)
-# Basic plot 
-series_ts.plot()
 
+series_ts = ts_col2Ts(df, 1, ts_col)
+# Basic plot
+series_ts.plot()
 
 # 1. load a table csv to df
 # 2. take a column as time series df to series
 # 3. create forecast period new series
-# 4. populate forecast period with forecast 
+# 4. populate forecast period with forecast
 
-    start_date = series_ts.index[0]
-    end_date = series_ts.index[-1]
-    
-    actual_series = df_actual.y.copy()
-    actual_series.index = df_actual.ds
+# prophet need an df with the main time series named as 'y'
+df_ts = series_ts.to_frame()
+df_ts.rename(columns={ts_col: 'y'}, inplace=True)
+df_ts['ds'] = df_ts.index
 
-    df_train['y'] = df_train['y'].astype('float')
-    
-    df_actual['y'] = df_actual['y'].astype('float')
-    
-    m = Prophet()
-    m.fit(df_train)
-    future = m.make_future_dataframe(periods=60)
-    forecast = m.predict(future)
-        
-    if(review):
-        ymin = min(df_actual.y.min(), df_train.y.min()) -100
-        ymax = max(df_actual.y.max(), df_train.y.max()) +100
-        #
-        plot_prediction_and_actual(m, forecast, df_actual, ylim=[ymin, ymax], figSize=(12,4), title='Normal model')
-    
-    mask = (forecast['ds'] >= start_date) & (forecast['ds'] <= end_date)
-    forecast_series = forecast[mask].yhat
-    forecast_series.index = forecast[mask].ds
-    forecast_series[forecast_series < 0] = 0
+df_ts['cap'] = 10000
+m = Prophet(growth='logistic')
 
-    return smape(forecast_series, actual_series)
+m.fit(df_ts)
 
+future = m.make_future_dataframe(periods=60)
+future['cap'] = 10000
+forecast = m.predict(future)
+
+m.plot(forecast, uncertainty=True)
+
+m.plot_components(forecast)
