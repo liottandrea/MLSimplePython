@@ -58,30 +58,31 @@ df[df.sentiment == 4].head(10)
 # drop the non relevant columns
 df.drop(['id', 'date', 'query_string', 'user'], axis=1, inplace=True)
 
+# sanity check, length of the string in text column in each entry.
+df['pre_clean_len'] = [len(t) for t in df.text]
+
 # %% PREP
 print("---Prep---")
 # Dictionary, first draft
 data_dict = {
-    'sentiment':{
-        'type':df.sentiment.dtype,
-        'description':'sentiment class - 0:negative, 1:positive'
+    'sentiment': {
+        'type': df.sentiment.dtype,
+        'description': 'sentiment class - 0:negative, 1:positive'
     },
-    'text':{
-        'type':df.text.dtype,
-        'description':'tweet text'
+    'text': {
+        'type': df.text.dtype,
+        'description': 'tweet text'
     },
-    'pre_clean_len':{
-        'type':df.pre_clean_len.dtype,
-        'description':'Length of the tweet before cleaning'
+    'pre_clean_len': {
+        'type': df.pre_clean_len.dtype,
+        'description': 'Length of the tweet before cleaning'
     },
-    'dataset_shape':df.shape
+    'dataset_shape': df.shape
 }
 pprint(data_dict)
 
 # HTML Encoding
 print("-----HTML Encoding")
-# sanity check, length of the string in text column in each entry.
-df['pre_clean_len'] = [len(t) for t in df.text]
 # plot it
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.boxplot(df.pre_clean_len)
@@ -113,7 +114,7 @@ print("-----URL links")
 # eg
 print(df.text[0])
 # convert it
-example1 = re.sub('https?://[A-Za-z0-9./]+','',df.text[0])
+example1 = re.sub('https?://[A-Za-z0-9./]+', '', df.text[0])
 print(example1)
 
 
@@ -161,8 +162,48 @@ def tweet_cleaner(text):
     return (" ".join(words)).strip()
 
 
+# first 100 rows
+print("Eg first 100 rows")
 testing = df.text[:100]
 test_result = []
 for t in testing:
     test_result.append(tweet_cleaner(t))
 test_result
+
+
+# record the time
+% % time
+print("Clean all the data")
+# create an equally space  array in case we want to
+# process by chunk
+nums = np.linspace(start=0, stop=df.shape[0], num=10).astype(int)
+print("Cleaning and parsing the tweets...\n")
+clean_tweet_texts = []
+# for cycle
+for i in range(nums[0], nums[-1]):
+    if((i+1) % 10000 == 0):
+        print("Tweets %d of %d has been processed" % (i+1, nums[-1]))
+    clean_tweet_texts.append(tweet_cleaner(df['text'][i]))
+
+
+len(clean_tweet_texts)
+
+
+# %% PREP
+print("---Output---")
+print("Save the clean tweets and the sentiments")
+
+df_clean = pd.DataFrame(
+    data=np.column_stack((clean_tweet_texts, df.sentiment.values)),
+    columns=['text', 'target'])
+
+df_clean.head()
+
+df_clean.to_csv(
+    "%s\\02_0_clean_tweet.csv" % data_directory,
+    encoding='utf-8')
+
+my_df = pd.read_csv(
+    "%s\\02_0_clean_tweet.csv" % data_directory, index_col=0)
+
+my_df.head()
