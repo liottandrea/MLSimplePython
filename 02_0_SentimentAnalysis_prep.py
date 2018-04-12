@@ -8,12 +8,14 @@ from pprint import pprint
 from bs4 import BeautifulSoup
 import re
 from nltk.tokenize import WordPunctTokenizer
+import json
 %matplotlib inline
 
 print("---Enviroment---")
 # %load_ext version_information
 %reload_ext version_information
 %version_information os, glob, panda, matplotlib, numpy, pprint, bs4, nltk
+%version_information json
 
 # %% DESCRIPTION
 print("---Description---")
@@ -37,8 +39,6 @@ print("The file to load are\n%s" % '\n'.join(csv_to_load))
 # just extract the names to use as keys later
 name_to_load = [f[len(data_directory)+1:-len(".csv")] for f in csv_to_load]
 
-
-csv_to_load[1]
 # %% INPUT
 print("---Input---")
 cols = ['sentiment', 'id', 'date', 'query_string', 'user', 'text']
@@ -52,8 +52,11 @@ df = pd.read_csv(
 # First check
 df.head()
 df.sentiment.value_counts()
+# there are jusy pos 4 and neg 0, so change pos to 1
+df.loc[df.sentiment == 4, 'sentiment'] = 1
+# heads
 df[df.sentiment == 0].head(10)
-df[df.sentiment == 4].head(10)
+df[df.sentiment == 1].head(10)
 
 # drop the non relevant columns
 df.drop(['id', 'date', 'query_string', 'user'], axis=1, inplace=True)
@@ -140,25 +143,39 @@ print(example1)
 # Defining data cleaning function
 print("-----Data Cleaning")
 tok = WordPunctTokenizer()
-pat1 = r'@[A-Za-z0-9]+'
-pat2 = r'https?://[A-Za-z0-9./]+'
+pat1 = r'@[A-Za-z0-9_]+'
+pat2 = r'https?://[^ ]+'
 combined_pat = r'|'.join((pat1, pat2))
+www_pat = r'www.[^ ]+'
+negations_dic = {"isn't": "is not", "aren't": "are not",
+                 "wasn't": "was not", "weren't": "were not",
+                 "haven't": "have not", "hasn't": "has not",
+                 "hadn't": "had not", "won't": "will not",
+                 "wouldn't": "would not", "don't": "do not",
+                 "doesn't": "does not", "didn't": "did not",
+                 "can't": "can not", "couldn't": "could not",
+                 "shouldn't": "should not", "mightn't": "might not",
+                 "mustn't": "must not"}
+neg_pattern = re.compile(r'\b(' + '|'.join(negations_dic.keys()) + r')\b')
 
 
 def tweet_cleaner(text):
     soup = BeautifulSoup(text, 'lxml')
     souped = soup.get_text()
-    stripped = re.sub(combined_pat, '', souped)
     try:
-        clean = stripped.encode('latin-1').decode('utf-8-sig')
+        bom_removed = souped.decode("utf-8-sig").replace(u"\ufffd", "?")
     except:
-        clean = stripped
-    letters_only = re.sub("[^a-zA-Z]", " ", clean)
-    lower_case = letters_only.lower()
+        bom_removed = souped
+    stripped = re.sub(combined_pat, '', bom_removed)
+    stripped = re.sub(www_pat, '', stripped)
+    lower_case = stripped.lower()
+    neg_handled = neg_pattern.sub(
+        lambda x: negations_dic[x.group()], lower_case)
+    letters_only = re.sub("[^a-zA-Z]", " ", neg_handled)
     # During the letters_only process two lines above,
-    # it has created unnecesary white spaces,
+    # it has created unnecessary white spaces,
     # I will tokenize and join together to remove unneccessary white spaces
-    words = tok.tokenize(lower_case)
+    words = [x for x in tok.tokenize(letters_only) if len(x) > 1]
     return (" ".join(words)).strip()
 
 
@@ -185,14 +202,11 @@ for i in range(nums[0], nums[-1]):
         print("Tweets %d of %d has been processed" % (i+1, nums[-1]))
     clean_tweet_texts.append(tweet_cleaner(df['text'][i]))
 
-
-len(clean_tweet_texts)
-
-
 # %% PREP
 print("---Output---")
 print("Save the clean tweets and the sentiments")
 
+# df
 df_clean = pd.DataFrame(
     data=np.column_stack((clean_tweet_texts, df.sentiment.values)),
     columns=['text', 'target'])
@@ -201,9 +215,4 @@ df_clean.head()
 
 df_clean.to_csv(
     "%s\\02_0_clean_tweet.csv" % data_directory,
-    encoding='utf-8')
-
-my_df = pd.read_csv(
-    "%s\\02_0_clean_tweet.csv" % data_directory, index_col=0)
-
-my_df.head()
+    encoding='ISO-8859-1')
