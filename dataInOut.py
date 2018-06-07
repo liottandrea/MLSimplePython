@@ -1,5 +1,5 @@
 # %% ENV
-import psycopg2
+#import psycopg2
 import pyodbc as pod
 import pandas as pd
 import pandas.io.sql as psql
@@ -24,7 +24,7 @@ def pg_connect2db():
     print("Connecting to database\n%s" % conn_string)
     # get a connection, if a connect cannot be made
     # an exception will be raised here
-    conn = psycopg2.connect(conn_string)
+    conn =1 #= psycopg2.connect(conn_string)
     return conn
 
 
