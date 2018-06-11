@@ -1,6 +1,6 @@
 #%% DESCRIPTION
-# Regression Template
-# standard template to run regression in Python
+# Classification Template
+# standard template to run classification in Python
 
 #%% ENV
 
@@ -26,6 +26,10 @@ from sklearn.preprocessing import StandardScaler
 # Logistic regression
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier 
 # confusion matrix
 from sklearn.metrics import confusion_matrix
 # colors for plot
@@ -112,9 +116,14 @@ if 'feature_scaling' in setting_input:
 # FIT
 # Fitting Logistic Regression to the Training set
 classifier = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
+classifier = SVC(kernel = 'linear', random_state = setting['seed_random'])
+classifier = SVC(kernel = 'rbf', random_state = setting['seed_random'])
+classifier = SVC(kernel = 'poly', random_state = setting['seed_random'])
+classifier = GaussianNB()
+classifier = DecisionTreeClassifier(criterion = 'entropy', random_state = setting['seed_random'])
+classifier = RandomForestClassifier(n_estimators = 10, criterion = 'entropy', random_state = setting['seed_random'])
 classifier = LogisticRegression(random_state = setting['seed_random'])
 classifier.fit(X_train, y_train)
-
 
 # %% PREDICT
 # fitted values on train set
