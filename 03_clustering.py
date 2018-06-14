@@ -24,6 +24,8 @@ from sklearn.preprocessing import StandardScaler
 # https://github.com/scikit-learn-contrib/sklearn-pandas
 # from sklearn_pandas import DataFrameMapper
 from sklearn.cluster import KMeans
+import scipy.cluster.hierarchy as sch
+from sklearn.cluster import AgglomerativeClustering
 # extra functions
 import dataInOut as myio
 
@@ -90,7 +92,7 @@ if 'feature_scaling' in setting_input:
      
     
    
-#%% CLUSTERING
+#%% CLUSTERING Kmeans
 # Using the elbow method to find the optimal number of clusters
 wcss = []
 for i in range(1, 11):
@@ -107,6 +109,10 @@ plt.show()
 # Fitting K-Means to the dataset
 kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = setting['seed_random'])
 y_kmeans = kmeans.fit_predict(X)
+
+
+
+#%% VISUALISE Kmeans
 
 X_2 = X.loc[:,setting_input['X_cols']].values
 
@@ -126,40 +132,32 @@ plt.ylabel('Spending Score (1-100)')
 plt.legend()
 plt.show()
 
-# %% PREDICT
-# fitted values on train set
-y_train_pred = pd.DataFrame(data = classifier.predict(X_train),
-                      columns = list(y_train),
-                      index = X_train.index)
+   
+#%% CLUSTERING HC
+# Using the dendrogram to find the optimal number of clusters
+dendrogram = sch.dendrogram(sch.linkage(X, method = 'ward'))
+plt.title('Dendrogram')
+plt.xlabel('Customers')
+plt.ylabel('Euclidean distances')
+plt.show()
 
-# fitted values on test set
-y_test_pred = pd.DataFrame(data = classifier.predict(X_test),
-                      columns = list(y_train),
-                      index = X_test.index)
+# Fitting Hierarchical Clustering to the dataset
+hc = AgglomerativeClustering(n_clusters = 5, affinity = 'euclidean', linkage = 'ward')
+y_hc = hc.fit_predict(X)
 
+X_2 = X.loc[:,setting_input['X_cols']].values
 
-
-#%% VISUALISE
-
-# Making the Confusion Matrix
-cm = confusion_matrix(y_test, y_test_pred)
-
-
-# Visualising the Training set results
-X_set, y_set = X_train.values, y_train.values
-X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
-                     np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
-plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
-             alpha = 0.75, cmap = ListedColormap(('#FFA07A', '#90EE90')))
-plt.xlim(X1.min(), X1.max())
-plt.ylim(X2.min(), X2.max())
-for i, j in enumerate(np.unique(y_set)):
-    plt.scatter(
-            X_train.loc[y_train[y_train[setting_input['y_col']] == i].index]['Age'].values,
-            X_train.loc[y_train[y_train[setting_input['y_col']] == j].index]['EstimatedSalary'].values,
-            c = ListedColormap(('red', 'green'))(i), label = j)
-plt.title('Logistic Regression (Training set)')
-plt.xlabel('Age')
-plt.ylabel('Estimated Salary')
+# Visualising the clusters
+plt.close()
+plt.scatter(X_2[y_hc == 0, 0], X_2[y_hc == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
+plt.scatter(X_2[y_hc == 1, 0], X_2[y_hc == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
+plt.scatter(X_2[y_hc == 2, 0], X_2[y_hc == 2, 1], s = 100, c = 'green', label = 'Cluster 3')
+plt.scatter(X_2[y_hc == 3, 0], X_2[y_hc == 3, 1], s = 100, c = 'cyan', label = 'Cluster 4')
+plt.scatter(X_2[y_hc == 4, 0], X_2[y_hc == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
+plt.title('Clusters of customers')
+plt.xlabel('Annual Income (k$)')
+plt.ylabel('Spending Score (1-100)')
 plt.legend()
 plt.show()
+
+
