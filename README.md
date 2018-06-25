@@ -1,1 +1,1 @@
-# MachineLearningAZ_Python_Udemy 
+# machine learning simple example scripts on different methodologies
